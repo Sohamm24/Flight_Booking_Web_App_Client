@@ -92,7 +92,7 @@ const LandingPage = () => {
             <div className="absolute left-8 right-8 top-1/2 border-t-2 border-dashed border-gray-300 transform -translate-y-1/2"></div>
 
             {/* Header */}
-            <div className="bg-slate-800 p-6 text-white relative overflow-hidden">
+            <div className="bg-slate-800 p-4 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full transform translate-x-16 -translate-y-16"></div>
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full transform -translate-x-12 translate-y-12"></div>
 
