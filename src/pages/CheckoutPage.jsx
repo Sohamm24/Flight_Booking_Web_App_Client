@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { MapPin, Calendar, Clock, User, CreditCard, PlaneTakeoff, PlaneLanding } from 'lucide-react';
+
 import CustomButton from "../components/button";
 import Navbar from '../components/navbar';
-import { MapPin, Calendar, Clock, User, CreditCard, PlaneTakeoff, PlaneLanding } from 'lucide-react';
 
 const CheckoutPage = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
    const handleProceed = () => {
+      console.log("Reached")
       navigate('/payment', { state: { from: location.pathname }}); 
       console.log({ state: { from: location.pathname }})
     }
@@ -35,6 +35,10 @@ const CheckoutPage = () => {
     const { name, value } = e.target;
     setTravellerDetails({ ...travellerDetails, [name]: value });
   };
+
+  useEffect(()=>{
+    
+  },[])
 
   return(
     <>

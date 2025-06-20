@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import paymentReducer from "./Slices/paymentSlice"
-import authReducer from "./Slices/authSlice"
+import userReducer from "./Slices/userSlice"
 
 const store = configureStore({
   reducer: {
     payment : paymentReducer,
-    auth : authReducer
+    user : userReducer
   },
 });
 

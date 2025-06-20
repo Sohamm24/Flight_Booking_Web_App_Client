@@ -1,22 +1,24 @@
-const Loader = ({ size = 'md'}) => {
+const Loader = ({ size = 'xl' }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16'
+    sm: 'w-5 h-5',
+    md: 'w-10 h-10',
+    lg: 'w-14 h-14',
+    xl: 'w-24 h-24', 
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div 
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div
         className={`
           ${sizeClasses[size]} 
-          border-4 
+          border-[6px] 
+          border-orange-400 
           border-t-transparent 
           rounded-full 
-          animate-spin
+          animate-spin 
+          shadow-xl
         `}
-      />
+      ></div>
     </div>
   );
 };
