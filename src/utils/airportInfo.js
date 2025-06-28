@@ -46,3 +46,12 @@ export const airportData = {
   },
 };
 
+
+export const getCityFromCode = (code) => {
+  for (const [city, data] of Object.entries(airportData)) {
+    if (data.code === code) {
+      return city;
+    }
+  }
+  return null; 
+};

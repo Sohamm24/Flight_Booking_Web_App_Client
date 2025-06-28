@@ -31,7 +31,7 @@ const LandingPage = () => {
      const { from, to, date, passengers, travelClass } = form;
   
      if (!from || from.trim() === "") {
-       showError("Please select a source city");
+       showError("Please select a Departure city");
        return;
      }
    
@@ -203,8 +203,6 @@ const LandingPage = () => {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 bg-gray-50 hover:bg-white font-medium appearance-none cursor-pointer"
                   >
                     <option value="Economy">Economy Class</option>
-                    <option value="Business">Business Class</option>
-                    <option value="First">First Class</option>
                   </select>
                 </div>
               </div>

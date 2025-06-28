@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-// Dummy payment function
 export const makeDummyPayment = createAsyncThunk(
   "payment/makeDummyPayment",
   async (paymentData) => {
-    await new Promise((res) => setTimeout(res, 1500)); // Simulate delay
+    await new Promise((res) => setTimeout(res, 1500)); // Made to Simulate real life delay
     return {
       id: "txn_12345",
       status: "success",

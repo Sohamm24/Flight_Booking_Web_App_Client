@@ -36,9 +36,9 @@ const SearchPage = () => {
     navigate("/");
   };
 
-  const handleCheckout = async (price) => {
+  const handleCheckout = async (price,flightid) => {
   try {
-    const itineraryId = await CreateItinenary(price, userid);
+    const itineraryId = await CreateItinenary(price, userid, flightid, passengers, date);
     navigate(`/checkout?itineraryId=${itineraryId}`);
   } catch (err) {
     console.error("Failed to create itinerary", err);
@@ -176,7 +176,7 @@ const SearchPage = () => {
                           ₹{flight.price.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500 mb-4">per person</div>
-                           <CustomButton text={"select flight"} onClick={() => handleCheckout(flight.price)} />
+                           <CustomButton text={"select flight"} onClick={() => handleCheckout(flight.price,flight.id)} />
                       </div>
                     </div>
                   </div>

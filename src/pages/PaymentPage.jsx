@@ -1,11 +1,12 @@
 // src/pages/PaymentPage.js
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useToast } from '../context/toastContext';
 import { makeDummyPayment } from "../redux/Slices/paymentSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Navbar from "../components/navbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditCard, Smartphone, Building2, Wallet, Clock, Check } from 'lucide-react';
+import { GetBooking } from "../services/bookingAPI";
 
 // Official or reputable logo URLs
 const logoUrls = {
@@ -53,6 +54,11 @@ const PaymentPage = () => {
     "Bank of Baroda"
   ];
 
+  const [searchParams] = useSearchParams()
+
+  const userid = useSelector((state) => state.user.user?.id);
+  const bookingId = searchParams.get("bookingId")
+
   const dispatch = useDispatch()
   const Navigate = useNavigate()
   const { showSuccess,showError } = useToast()
@@ -64,10 +70,27 @@ const PaymentPage = () => {
       await dispatch(makeDummyPayment({ amount: 3000 })).unwrap();
       Navigate('/')
       showSuccess('Payment Successful!', 'success');
+      const res = await fetch("https://email-1034469173344.asia-south1.run.app", {
+       method: "POST",
+       headers: {
+        "Content-Type": "application/json",
+       },
+      body: JSON.stringify({ name: "Soham" }), 
+    });
+
+  const text = await res.text();
+  alert(text);
     } catch (error) {
       showError('Error in payment',error);
     }
   };
+
+  useEffect(()=>{
+    const data = GetBooking(bookingId)
+    if(userid !== data.userid){
+      Navigate('/')
+    }
+  },[userid])
 
   return (
     <>
@@ -282,7 +305,7 @@ const PaymentPage = () => {
         <button 
           className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${
             selectedMethod 
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02]' 
+              ? 'bg-slate-800 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02]' 
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
           disabled={!selectedMethod}

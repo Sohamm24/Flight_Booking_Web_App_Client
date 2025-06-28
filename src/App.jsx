@@ -15,6 +15,7 @@ import PaymentPage from "./pages/PaymentPage";
 import ClerkAuthHandler from "./clerk/clerkAuthhandler";
 import { useToast } from '../src/context/toastContext';
 import Loader from "../src/components/common/loader";
+import SeatView from "./components/seatView";
 
 function App() {
   const {showSuccess} = useToast() 

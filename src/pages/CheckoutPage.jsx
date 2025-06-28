@@ -1,44 +1,102 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Calendar, Clock, User, CreditCard, PlaneTakeoff, PlaneLanding } from 'lucide-react';
+import { useSelector } from "react-redux";
 
 import CustomButton from "../components/button";
 import Navbar from '../components/navbar';
+import { GetItinenary } from '../services/itinenaryAPI';
+import { useToast } from '../context/toastContext';
+import { getCityFromCode } from '../utils/airportInfo';
+import SeatView from '../components/seatView';
+import { CreateBooking } from '../services/bookingAPI';
 
 const CheckoutPage = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const {showInfo,showError} = useToast()
 
+  const userid = useSelector((state) => state.user.user?.id);
+  const itinenaryId = searchParams.get("itinenaryId")
 
    const handleProceed = () => {
-      console.log("Reached")
-      navigate('/payment', { state: { from: location.pathname }}); 
-      console.log({ state: { from: location.pathname }})
+      if(currentPassengerIndex+1 !== travellers){
+        showError("Fill all Passenger Details as per count")
+        return 
+      }
+
+      const incompletePassenger = passengers.find(
+      (p) => !p.name || !p.age || !p.gender
+      );
+
+      if (incompletePassenger) {
+      showError("Fill all passenger details before proceeding");
+      return;
+      }
+
+      const bookingId =CreateBooking(passengers,journeyDetails,userid)
+
+      navigate(`/payment?bookingId=${bookingId}`, { state: { from: location.pathname }}); 
     }
   
+   const [travellers,setTravellers] = useState()
+   const [currentPassengerIndex, setCurrentPassengerIndex] = useState(0);
+   const [showSeatView, setShowSeatView] = useState(false);
+
+
    const [journeyDetails, setJourneyDetails] = useState({
-    from: "Delhi",
-    to: "Mumbai",
-    date: "2025-06-30",
-    time: "08:30 AM",
+    from: "",
+    to: "",
+    date: "",
+    time: ""
   });
 
-  const [travellerDetails, setTravellerDetails] = useState({
-    name: "",
-    age: "",
-    gender: "",
-    seatClass: "Economy",
-  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTravellerDetails({ ...travellerDetails, [name]: value });
+ const [passengers, setPassengers] = useState([
+    { name: "", age: "", gender: "", seat: "" , class: "Economy"}
+  ]);
+
+  const handleChange = (index, e) => {
+    const updated = [...passengers];
+    updated[index][e.target.name] = e.target.value;
+    setPassengers(updated);
   };
 
-  useEffect(()=>{
-    
-  },[])
+  const handleAddPassenger = () => {
+    if(currentPassengerIndex+1 >= travellers){
+      showInfo("Passengers already selected")
+      return
+    }
+    const newPassengers = [...passengers, { name: "", age: "", gender: "", seat: "" , class: ""}];
+    setPassengers(newPassengers);
+    setCurrentPassengerIndex(newPassengers.length - 1); 
+  };
+
+ const handleSeatSelect = (seat) => {
+  const updated = [...passengers];
+  updated[currentPassengerIndex].seat = seat;
+  setPassengers(updated);
+};
+
+
+ useEffect(()=>{
+    const data = GetItinenary(itinenaryId)
+    const traveller = data.passengers
+    if(userid !== data.id ){
+      navigate('/')
+    }
+    const from = getCityFromCode(data.departureAirportId)
+    const to = getCityFromCode(data.arrivalAirportId)
+    setJourneyDetails({
+      from : from,
+      to : to ,
+      date : data.date,
+      time : "8:30 Hrs"
+    })
+    setTravellers(traveller)
+ },[ itinenaryId,userid])
 
   return(
     <>
@@ -63,7 +121,7 @@ const CheckoutPage = () => {
             <div className="bg-gradient-to-r from-blue-200 to-purple-200 rounded-2xl p-6 border border-blue-100">
               <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-blue-600" />
-                Journey Details
+                Flight Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -100,120 +158,148 @@ const CheckoutPage = () => {
                 </div>
               </div>
             </div>
+         <div className="space-y-6">
 
-            {/* Traveller Details */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                <User className="w-5 h-5 text-purple-600" />
-                Traveller Information
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Full Name</label>
-                  <input
-                    name="name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={travellerDetails.name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Age</label>
-                  <input
-                    name="age"
-                    type="number"
-                    placeholder="Enter your age"
-                    value={travellerDetails.age}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Gender</label>
-                  <select
-                    name="gender"
-                    value={travellerDetails.gender}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Seat Class</label>
-                  <select
-                    name="seatClass"
-                    value={travellerDetails.seatClass}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                  >
-                    <option value="Economy">Economy</option>
-                    <option value="Premium Economy">Premium Economy</option>
-                    <option value="Business">Business</option>
-                  </select>
-                </div>
-              </div>
-            </div>
 
-            {/* Booking Summary */}
-            <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-2xl p-6 shadow-inner">
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Booking Summary</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Passenger:</span>
-                    <span className="font-medium">{travellerDetails.name || "Not specified"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Age:</span>
-                    <span className="font-medium">{travellerDetails.age || "Not specified"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Class:</span>
-                    <span className="font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm">
-                      {travellerDetails.seatClass}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Route:</span>
-                    <span className="font-medium">{journeyDetails.from} → {journeyDetails.to}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date:</span>
-                    <span className="font-medium">{journeyDetails.date}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Departure:</span>
-                    <span className="font-medium">{journeyDetails.time}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="flex justify-center pt-4">   
-              <CustomButton 
-                onClick={handleProceed} 
-                text="Proceed"
-              />
-            </div>
+   <div className="flex items-center justify-between gap-4 mb-6">
+        <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-r from-blue-200 to-purple-400 rounded-lg shadow-lg">
+            <User className="w-6 h-6 text-white" />
           </div>
+          Traveller Information
+        </h3>
+        <div className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-2 rounded-full shadow-md border border-purple-200">
+          Passenger {currentPassengerIndex + 1} of {travellers || 0}
+        </div>
+      </div>
+      
+      <div className='text-sm font-medium text-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 rounded-xl shadow-md border border-amber-200 mb-6 flex items-center gap-2'>
+        <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+        Please enter valid Passenger information as per Government IDs, Tripzy wont be responsible for any mismatch during check-in
+      </div>
+
+      {passengers.map((travellerDetails, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 mb-6 relative overflow-hidden"
+        >
+          {/* Decorative gradient overlay */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-200 to-purple-400"></div>
+          
+          <div className="text-xl font-bold text-gray-800 mb-4 col-span-full flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-200 to-purple-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+              {index + 1}
+            </div>
+            Passenger {index + 1}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Full Name
+            </label>
+            <input
+              name="name"
+              type="text"
+              autoComplete='off'
+              placeholder="Enter your full name"
+              value={travellerDetails.name}
+              onChange={(e) => handleChange(index, e)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200 placeholder-gray-400"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Age
+            </label>
+            <input
+              name="age"
+              type="number"
+              autoComplete='off'
+              placeholder="Enter your age"
+              value={travellerDetails.age}
+              onChange={(e) => handleChange(index, e)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200 placeholder-gray-400"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+              Gender
+            </label>
+            <select
+              name="gender"
+              value={travellerDetails.gender}
+              onChange={(e) => handleChange(index, e)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+            >
+              <option value="" className="text-gray-400">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              Seat
+            </label>
+            <CustomButton
+              text="Select Seat"
+              onClick={() => setShowSeatView(true)} 
+            />
+            <div className="text-sm font-medium text-gray-600 bg-gradient-to-r from-gray-50 to-blue-50 px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+              <span>Seat Selected:</span>
+              <span className="font-bold text-blue-600">
+                {travellerDetails.seat || "None"}
+              </span>
+            </div>
+        
+           { showSeatView && currentPassengerIndex === index && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+                <SeatView
+                  onSeatSelect={(seat) => {
+                    handleSeatSelect(seat)
+                    setShowSeatView(false)
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          </div>
+        </div>
+      ))}
+
+      <div className="mb-6">
+        <CustomButton 
+          text="+ Add Another Passenger" 
+          onClick={handleAddPassenger}
+          className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+        />
+      </div>
+    </div>
+
+    <div className='text-sm font-semibold text-red-800 bg-gradient-to-r from-red-50 to-pink-50 px-4 py-3 rounded-xl shadow-md border border-red-200 mb-6 flex items-center gap-2'>
+      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+      Confirm Details before Proceeding as you wont be able to change details after this
+    </div>          
+    
+    <div className="flex justify-center"> 
+      <CustomButton 
+        onClick={handleProceed} 
+        text="Proceed to Payment"
+      />
+    </div>
         </div>
       </div>
     </div>
-    </>
-  )
+  </div>
+  </>
+ )
 }
-
 export default CheckoutPage
