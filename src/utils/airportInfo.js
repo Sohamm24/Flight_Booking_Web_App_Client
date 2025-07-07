@@ -1,50 +1,33 @@
 export const cities = [
-    "Mumbai", "Mangalore", "Madurai", "Mohali",
-    "Ahmedabad", "Amritsar", "Agra", "Delhi","Bengaluru","Chennai"
+    "Mumbai","Pune","Bengaluru","Chennai","Kolkata","Jaipur"
   ];
 
 export const airportData = {
   Mumbai: {
     code: "BOM",
-    name: "Chhatrapati Shivaji Maharaj International Airport Sahara T2 Andheri",
+    name: "Chhatrapati Shivaji Maharaj International Airport",
   },
-  Mangalore: {
-    code: "IXE",
-    name: "Mangalore International Airport",
-  },
-  Madurai: {
-    code: "IXM",
-    name: "Madurai Airport",
-  },
-  Mohali: {
-    code: "IXC",
-    name: "Shaheed Bhagat Singh International Airport",
-  },
-  Ahmedabad: {
-    code: "AMD",
-    name: "Sardar Vallabhbhai Patel International Airport",
-  },
-  Amritsar: {
-    code: "ATQ",
-    name: "Sri Guru Ram Dass Jee International Airport",
-  },
-  Agra: {
-    code: "AGR",
-    name: "Pandit Deen Dayal Upadhyay Airport",
-  },
-  Delhi: {
-    code: "DEL",
-    name: "Indira Gandhi International Airport",
+  Pune: {
+    code: "PNQ",
+    name: "Pune International Airport",
   },
   Bengaluru: {
     code: "BLR",
-    name: "Kempegowda International Airport",
+    name: "Kempegowda International Aiport",
   },
-  Chennai: {
+  Chennai : {
     code: "MAA",
     name: "Chennai International Airport",
   },
-};
+  Kolkata: {
+    code: "CCU",
+    name: "Netaji Subhas Chandra Bose International Airport",
+  },
+  Jaipur: {
+    code: "JAI",
+    name: "Jaipur International Airport",
+  }
+}
 
 
 export const getCityFromCode = (code) => {
@@ -54,4 +37,9 @@ export const getCityFromCode = (code) => {
     }
   }
   return null; 
+}
+
+export const getCodeFromCity = (cityName) => {
+  const data = airportData[cityName];
+  return data ? data.code : null;
 };

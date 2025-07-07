@@ -48,29 +48,43 @@ const SearchPage = () => {
   const filteredFlights = flights.filter((flight) => {
     const min = filters.minPrice ? parseInt(filters.minPrice) : 0;
     const max = filters.maxPrice ? parseInt(filters.maxPrice) : Infinity;
-    return flight.price >= min && flight.price <= max;
+    return flight.flight.price >= min && flight.flight.price <= max;
   });
+
+  const calculateFlightDuration = (departureTime, arrivalTime) => {
+  const dep = new Date(`2000-01-01T${departureTime}`);
+  const arr = new Date(`2000-01-01T${arrivalTime}`);
+  if (arr < dep) arr.setDate(arr.getDate() + 1); // handle overnight flights
+  const diff = arr - dep;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+  };
 
   useEffect(() => {
         setLoading(true);
         const data = {
           from,
           to,
-          date,
-          passengers,
-          travelClass
+          date
         }
-
         SearchFlightsAPI( data )
           .then((res) => {
-            setFlights(res);
+            const processedFlights = res.data.data.map((flightInstance) => {
+              const { departureTime, arrivalTime } = flightInstance.flight;
+              const duration = calculateFlightDuration(departureTime, arrivalTime);
+              return { ...flightInstance, duration }; 
+            });
+            setFlights(processedFlights);
             setError("");
           })
           .catch((err) => {
-            setError("Failed to fetch flights",err);
+            setError("Failed to fetch flights",err)
           })
           .finally(() => setLoading(false))
-         } , [from, to, date, passengers, travelClass]);
+         } , [from, to, date])
+
+          console.log(flights)
 
   return (
     <>
@@ -144,12 +158,12 @@ const SearchPage = () => {
                         <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mr-3 group-hover:bg-blue-100 transition-colors">
                           <Plane className="w-5 h-5 text-blue-500" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-800">{flight.airline}</h3>
+                        <h3 className="text-xl font-semibold text-gray-800">{flight.flight.flightNumber}</h3>
                       </div>
                       <div className="flex items-center space-x-4 mb-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-800 mb-1">{flight.from}</div>
-                          <div className="text-sm text-gray-500">{flight.time.split(" - ")[0]}</div>
+                          <div className="text-2xl font-bold text-gray-800 mb-1">{flight.flight.departureAirport.City.name}</div>
+                          <div className="text-sm text-gray-500"></div>
                         </div>
                         <div className="flex-1 flex items-center justify-center relative">
                           <div className="w-full h-0.5 bg-gray-200 relative">
@@ -160,8 +174,8 @@ const SearchPage = () => {
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-800 mb-1">{flight.to}</div>
-                          <div className="text-sm text-gray-500">{flight.time.split(" - ")[1]}</div>
+                          <div className="text-2xl font-bold text-gray-800 mb-1">{flight.flight.arrivalAirport.City.name}</div>
+                          <div className="text-sm text-gray-500"></div>
                         </div>
                       </div>
                       <div className="flex items-center text-gray-600">
@@ -173,7 +187,7 @@ const SearchPage = () => {
                     <div className="ml-8 text-right">
                       <div className="bg-gradient-to-br from-blue-50 to-blue-200 rounded-2xl p-6 group-hover:from-green-100 group-hover:to-emerald-100 transition-all">
                         <div className="text-3xl font-bold text-slate-800 mb-1">
-                          ₹{flight.price.toLocaleString()}
+                          ₹{flight.flight.price.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500 mb-4">per person</div>
                            <CustomButton text={"select flight"} onClick={() => handleCheckout(flight.price,flight.id)} />

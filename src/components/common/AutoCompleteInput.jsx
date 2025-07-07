@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { cities,airportData } from "../../utils/airportInfo";
 
-const defaultCities = ["Delhi", "Mumbai", "Bengaluru"];
+const defaultCities = ["Mumbai","Pune","Bengaluru"];
 
 
 const AutoCompleteInput = ({ name, value, onChange, color }) => {
