@@ -17,6 +17,7 @@ const SearchPage = () => {
   const [filters, setFilters] = useState({ minPrice: "", maxPrice: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [time, setTime] = useState("")
 
   const userid = useSelector((state) => state.user.user?.id);
 
@@ -24,8 +25,7 @@ const SearchPage = () => {
   const from = query.get("from");
   const to = query.get("to");
   const date = query.get("date");
-  const passengers = query.get("passengers");
-  const travelClass = query.get("class");
+  const passengerCount = Number(query.get("passengers"));
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -38,8 +38,8 @@ const SearchPage = () => {
 
   const handleCheckout = async (price,flightid) => {
   try {
-    const itineraryId = await CreateItinenary(price, userid, flightid, passengers, date);
-    navigate(`/checkout?itineraryId=${itineraryId}`);
+    const itineraryid = await CreateItinenary( userid, flightid, from, to, date, time, passengerCount, price);
+    navigate(`/checkout?itineraryid=${itineraryid}`);
   } catch (err) {
     console.error("Failed to create itinerary", err);
   }
@@ -54,10 +54,11 @@ const SearchPage = () => {
   const calculateFlightDuration = (departureTime, arrivalTime) => {
   const dep = new Date(`2000-01-01T${departureTime}`);
   const arr = new Date(`2000-01-01T${arrivalTime}`);
-  if (arr < dep) arr.setDate(arr.getDate() + 1); // handle overnight flights
+  if (arr < dep) arr.setDate(arr.getDate() + 1); 
   const diff = arr - dep;
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  setTime(`${hours}h ${minutes}m`)
   return `${hours}h ${minutes}m`;
   };
 
@@ -190,7 +191,7 @@ const SearchPage = () => {
                           ₹{flight.flight.price.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500 mb-4">per person</div>
-                           <CustomButton text={"select flight"} onClick={() => handleCheckout(flight.price,flight.id)} />
+                           <CustomButton text={"select flight"} onClick={() => handleCheckout(flight.flight.price,flight.id)} />
                       </div>
                     </div>
                   </div>

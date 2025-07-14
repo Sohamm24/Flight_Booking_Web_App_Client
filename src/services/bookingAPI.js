@@ -1,26 +1,28 @@
+
+import axios from 'axios';
 import SHA256 from 'crypto-js/sha256';
 
-const CreateBooking = (passengers,journeyDetails,userid) => {
-  const input = `${passengers}-${journeyDetails}${userid}`;
-  const bookingId =  SHA256(input).toString();
-  //store bookingId in database 
-  return bookingId
+const CreateBooking = async (flightInstanceId,userId,totalCost,noofSeats,itineraryid) => {
+  console.log(flightInstanceId,userId,totalCost,noofSeats,itineraryid)
+  const currTime = Date.now()
+  const input = `${currTime}-${userId}`;
+  const bookingid =  SHA256(input).toString();
+  await axios.post("http://localhost:4000/api/v1/bookings/",
+    {
+     flightInstanceId,
+     userId,
+     totalCost,
+     noofSeats,
+     itineraryid,
+     bookingid
+   } 
+  )
+  return bookingid
 }
 
-const GetBooking = (bookingId) => {
-   // fetch itinenary data from database
-   const data = {
-    passengers : [
-     {name : "Soham Chetan Narvankar", age : "19", gender : "male", seat: "1B", class :"Economy"},
-    ],
-    journeyDetails : {
-      from : "BOM",
-      to : "DEL",
-      date : "2025-06-26",
-      time : "08:30",
-    },
-    userid : "user_2yfq7rtHdCjlO9HFcELpnVU3DAY"
-   }
+const GetBooking = async (bookingid) => {
+   console.log(bookingid)
+   const data =  await axios.get(`http://localhost:4000/api/v1/bookings/${bookingid}`)
    return data
 }
 

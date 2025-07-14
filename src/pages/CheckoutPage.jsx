@@ -5,11 +5,12 @@ import { useSelector } from "react-redux";
 
 import CustomButton from "../components/button";
 import Navbar from '../components/navbar';
-import { GetItinenary } from '../services/itinenaryAPI';
+import { FillItinerary, GetItinerary } from '../services/itinenaryAPI';
 import { useToast } from '../context/toastContext';
 import { getCityFromCode } from '../utils/airportInfo';
 import SeatView from '../components/seatView';
 import { CreateBooking } from '../services/bookingAPI';
+import dayjs from 'dayjs';
 
 const CheckoutPage = () => {
 
@@ -19,9 +20,9 @@ const CheckoutPage = () => {
   const {showInfo,showError} = useToast()
 
   const userid = useSelector((state) => state.user.user?.id);
-  const itinenaryId = searchParams.get("itinenaryId")
+  const itineraryid = searchParams.get("itineraryid")
 
-   const handleProceed = () => {
+   const handleProceed = async () => {
       if(currentPassengerIndex+1 !== travellers){
         showError("Fill all Passenger Details as per count")
         return 
@@ -35,10 +36,12 @@ const CheckoutPage = () => {
       showError("Fill all passenger details before proceeding");
       return;
       }
+      FillItinerary(itineraryid,passengers)
+      const data= await GetItinerary(itineraryid)
+      console.log(data)
+      const bookingid =await CreateBooking(data.data.data.flightid,userid,data.data.data.totalPrice,travellers,itineraryid)
 
-      const bookingId =CreateBooking(passengers,journeyDetails,userid)
-
-      navigate(`/payment?bookingId=${bookingId}`, { state: { from: location.pathname }}); 
+      navigate(`/payment?bookingId=${bookingid}`, { state: { from: location.pathname }}); 
     }
   
    const [travellers,setTravellers] = useState()
@@ -82,21 +85,27 @@ const CheckoutPage = () => {
 
 
  useEffect(()=>{
-    const data = GetItinenary(itinenaryId)
-    const traveller = data.passengers
-    if(userid !== data.id ){
-      navigate('/')
+    const fetchItinerary = async () => {
+    try {
+      const response = await GetItinerary(itineraryid); 
+      const data = response.data.data
+      const traveller = data.totalPrice / data.price
+
+      setJourneyDetails({
+        from: data.from,
+        to: data.to,
+        date: data.date,
+        time: data.time
+      });
+
+      setTravellers(traveller);
+    } catch (error) {
+      console.error("Error fetching itinerary:", error);
     }
-    const from = getCityFromCode(data.departureAirportId)
-    const to = getCityFromCode(data.arrivalAirportId)
-    setJourneyDetails({
-      from : from,
-      to : to ,
-      date : data.date,
-      time : "8:30 Hrs"
-    })
-    setTravellers(traveller)
- },[ itinenaryId,userid])
+  };
+
+  fetchItinerary();
+}, [itineraryid, userid]);
 
   return(
     <>
@@ -136,7 +145,7 @@ const CheckoutPage = () => {
                     <Calendar className="w-4 h-4 text-blue-600" />
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wide">Date</p>
-                      <p className="font-semibold text-gray-800">{journeyDetails.date}</p>
+                      <p className="font-semibold text-gray-800">{dayjs(journeyDetails.date).format("DD MMMM YYYY")}</p>
                     </div>
                   </div>
                 </div>
@@ -287,7 +296,40 @@ const CheckoutPage = () => {
     <div className='text-sm font-semibold text-red-800 bg-gradient-to-r from-red-50 to-pink-50 px-4 py-3 rounded-xl shadow-md border border-red-200 mb-6 flex items-center gap-2'>
       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
       Confirm Details before Proceeding as you wont be able to change details after this
-    </div>          
+    </div> 
+
+    <div className="bg-white rounded-xl p-4 shadow-sm">
+          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-emerald-600" />
+            Cost Breakdown
+          </h4>
+          <div className="space-y-2">
+             <div className="flex justify-between text-gray-600">
+              <span>Base Fare</span>
+              <span>₹5999</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Taxes & Fees</span>
+              <span>₹{(passengers.length * 450).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Discount</span>
+              <span>₹{(passengers.length * 450).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Seat Selection</span>
+              <span>₹0</span>
+            </div>
+            <div className="border-t border-gray-200 pt-2 mt-3">
+              <div className="flex justify-between text-lg font-bold text-gray-800">
+                <span>Total Amount</span>
+                <span className="text-emerald-600">
+                  ₹5999
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
     
     <div className="flex justify-center"> 
       <CustomButton 

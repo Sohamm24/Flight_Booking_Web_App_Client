@@ -1,25 +1,36 @@
+import axios from 'axios';
 import SHA256 from 'crypto-js/sha256';
 
-const CreateItinenary = (price,userid,flightid,passengers,date) => {
-  console.log(userid,price,flightid,passengers,date)
-  const input = `${userid}-${price}-${flightid}-${passengers}-${date}`;
-  const itinenaryId =  SHA256(input).toString();
-  //store itinenaryId in database 
-  return itinenaryId
+const CreateItinenary = async (userid,flightid,from,to,date,time,passengerCount,price) => {
+  const currTime = Date.now()
+  const input = `${userid}-${currTime}`;
+  const itineraryid =  SHA256(input).toString();
+  await axios.post("http://localhost:4000/api/v1/itinerary",
+      {
+      itineraryid,
+      userid,
+      flightid,
+      from,
+      to,
+      date,
+      time,
+      passengerCount,
+      price
+   } 
+  )
+  return itineraryid
 }
 
-const GetItinenary = (itinenaryId) => {
-   // fetch itinenary data from database
-   const data = {
-    id : "user_2yfq7rtHdCjlO9HFcELpnVU3DAY",
-    date : "2025-06-26",
-    flightid : "121",
-    departureAirportId : "BOM",
-    arrivalAirportId : "DEL",
-    passengers : 1
-   }
-   return data
+const GetItinerary =  async (itineraryid) => {
+  const response = await axios.get(`http://localhost:4000/api/v1/itinerary/${itineraryid}`)
+  console.log(response)
+  return response
 }
 
+const FillItinerary = async (itinenaryid,passengers) => {
+  await axios.patch(`http://localhost:4000/api/v1/itinerary/${itinenaryid}`,{
+      passengers
+  })
+}
 
-export { CreateItinenary,GetItinenary }
+export { CreateItinenary,GetItinerary,FillItinerary }

@@ -2,11 +2,12 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from '../context/toastContext';
 import { makeDummyPayment } from "../redux/Slices/paymentSlice";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/navbar";
 import { useEffect, useState } from "react";
 import { CreditCard, Smartphone, Building2, Wallet, Clock, Check } from 'lucide-react';
 import { GetBooking } from "../services/bookingAPI";
+import CustomButton from "../components/button";
 
 // Official or reputable logo URLs
 const logoUrls = {
@@ -56,41 +57,49 @@ const PaymentPage = () => {
 
   const [searchParams] = useSearchParams()
 
-  const userid = useSelector((state) => state.user.user?.id);
+  const userId = useSelector((state) => state.user.user?.id)
   const bookingId = searchParams.get("bookingId")
 
   const dispatch = useDispatch()
   const Navigate = useNavigate()
   const { showSuccess,showError } = useToast()
-  const [selectedMethod, setSelectedMethod] = useState('');
-  const [selectedBank, setSelectedBank] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState('')
+  const [selectedBank, setSelectedBank] = useState('')
+  const [bookingDetails, setBookingDetails] = useState('')
 
   const handlePay = async () => {
     try {
-      await dispatch(makeDummyPayment({ amount: 3000 })).unwrap();
-      Navigate('/')
-      showSuccess('Payment Successful!', 'success');
-      const res = await fetch("https://email-1034469173344.asia-south1.run.app", {
-       method: "POST",
-       headers: {
-        "Content-Type": "application/json",
-       },
-      body: JSON.stringify({ name: "Soham" }), 
-    });
-
-  const text = await res.text();
-  alert(text);
+      await dispatch(makeDummyPayment({totalCost : bookingDetails.totalCost , userId : userId , bookingid : bookingId })).unwrap()
+      Navigate('/confirmation')
+      showSuccess('Payment Successful!', 'success')
     } catch (error) {
-      showError('Error in payment',error);
+      showError('Error in payment',error)
     }
   };
 
-  useEffect(()=>{
-    const data = GetBooking(bookingId)
-    if(userid !== data.userid){
+  const handleCancel = async () => {
+    try{
+    await dispatch(makeDummyPayment({ amount: 0}))
+    Navigate('/confirmation')
+    }catch (error) {
+      showError('Try Again',error)
+    }
+  }
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const data = await GetBooking(bookingId)
+      setBookingDetails(data.data.data)
+    } catch (error) {
+      console.error("Error fetching booking:", error)
       Navigate('/')
     }
-  },[userid])
+  };
+
+    fetchData()
+
+}, [userId])
 
   return (
     <>
@@ -313,6 +322,7 @@ const PaymentPage = () => {
         >
           {selectedMethod ? 'Continue to Payment' : 'Select a Payment Method'}
         </button>
+        <CustomButton onClick={handleCancel} text={"Cancel Payement"}></CustomButton>
       </div>   
     </>
   );

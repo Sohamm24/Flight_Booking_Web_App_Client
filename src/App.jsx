@@ -1,6 +1,6 @@
 // libraries
 import { Routes, Route, Navigate } from "react-router-dom";
-import { SignedIn, SignedOut, ClerkLoaded, ClerkLoading, useUser, RedirectToSignIn} from "@clerk/clerk-react";
+import { SignedIn, SignedOut, ClerkLoaded, ClerkLoading, RedirectToSignIn} from "@clerk/clerk-react";
 import { useEffect } from "react";
 
 
@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import SearchPage from "./pages/SearchPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentPage from "./pages/PaymentPage";
+import ConfirmationPage from "./pages/ConfirmationPage";
 
 //file imports
 //import Auth from "./components/Auth"
@@ -54,6 +55,20 @@ function App() {
                    </SignedIn>
                    <SignedOut>
                     <RedirectToSignIn redirectUrl="/payment"/>
+                   </SignedOut>
+                   </>
+                 }
+           />
+
+           <Route
+                 path="/confirmation"
+                 element={
+                   <>
+                   <SignedIn>
+                     <ConfirmationPage />
+                   </SignedIn>
+                   <SignedOut>
+                    <RedirectToSignIn redirectUrl="/confirmation"/>
                    </SignedOut>
                    </>
                  }

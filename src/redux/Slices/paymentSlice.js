@@ -1,16 +1,31 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 export const makeDummyPayment = createAsyncThunk(
   "payment/makeDummyPayment",
-  async (paymentData) => {
-    await new Promise((res) => setTimeout(res, 1500)); // Made to Simulate real life delay
-    return {
-      id: "txn_12345",
-      status: "success",
-      amount: paymentData.amount,
-    };
+  async (paymentData, thunkAPI) => {
+    console.log(paymentData)
+    try {
+      const response = await axios.post("http://localhost:4000/api/v1/bookings/payment", {
+        totalCost : paymentData.totalCost,
+        userId : paymentData.userId,
+        bookingid : paymentData.bookingid 
+       },
+       {
+         headers: {
+           "x-idempotency-key": "12323565354"
+         }
+       }
+      );
+      return response.data; 
+    } catch (error) {
+      console.log(error)
+      const message =
+        error.response?.data?.message || "Payment failed. Try again.";
+      return thunkAPI.rejectWithValue(message);
+    }
   }
-);
+)
 
 const paymentSlice = createSlice({
   name: "payment",
